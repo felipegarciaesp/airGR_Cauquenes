@@ -19,6 +19,11 @@ library (openxlsx)
 library(hydroGOF)
 library(hydroTSM)
 library(readr)
+library(dplyr)
+library(tibble)
+
+# Paquete tibble es para ocupar column_to_rownames, que nos permite dejar una 
+# columna como indice del dataframe y eliminarlo como columna del dataframe.
 
 # Seteamos el directorio de trabajo donde trabajaremos
 setwd('C:/Users/Usuario/Codigos_R/tarea_etp_mensual')
@@ -39,3 +44,27 @@ ruta_tmin_mon <- paste0(ruta_archivos,"/",tmin_mon)
 
 # Se cargan los archivos requeridos (pp, tmax y tmin):
 PPload <- read_csv(ruta_pp_mon)
+tmax_load <- read_csv(ruta_tmax_mon)
+tmin_load <- read_csv(ruta_tmin_mon)
+
+# Dejamos los dataframe solo con fecha y la data de interes:
+PPload <- PPload %>% select('date','7336001') %>% rename('Pp (mm)' = '7336001')
+tmax_load <- tmax_load %>% select('date','7336001') %>% rename('tmax (deg)' = '7336001')
+tmin_load <- tmin_load %>% select('date','7336001') %>% rename('tmin (deg)' = '7336001')
+
+# Calculamos la temperatura promedio y lo almacenamos en un nuevo dataframe:
+# 1ero, combinamos los df por la columna 'date':
+temp_combined <- left_join(tmax_load, tmin_load, by='date')
+
+# 2do, calculamos la temperatura promedio usando mutate y rowMeans:
+temp_avg <- temp_combined %>% 
+  mutate(temperature_avg = rowMeans(select(., 'tmax (deg)', 'tmin (deg)'), na.rm = TRUE)) %>% 
+  select(date, temperature_avg)
+
+
+
+
+
+
+
+
